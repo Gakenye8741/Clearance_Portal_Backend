@@ -227,36 +227,25 @@ export const notifications = pgTable('notifications', {
 });
 
 // ==========================================
-// 11. DEPARTMENT REQUIREMENTS TABLE
+// 13. DEFAULTERS TABLE
 // ==========================================
-export const departmentRequirements = pgTable('department_requirements', {
-  id: uuid('id').defaultRandom().primaryKey(),
-  departmentId: uuid('department_id').references(() => nonAcademicDepartments.id, { onDelete: 'cascade' }).notNull(),
-  title: text('title').notNull(),
-  description: text('description'),
-  isRequired: boolean('is_required').default(true).notNull(),
-  displayOrder: integer('display_order').default(0).notNull(),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-});
-
-// ==========================================
-// 12. REQUIREMENT PROGRESS TABLE
-// ==========================================
-export const requirementProgress = pgTable('requirement_progress', {
+export const defaulters = pgTable('defaulters', {
   id: uuid('id').defaultRandom().primaryKey(),
   clearanceRequestId: uuid('clearance_request_id').references(() => clearanceRequests.id, { onDelete: 'cascade' }).notNull(),
-  requirementId: uuid('requirement_id').references(() => departmentRequirements.id, { onDelete: 'cascade' }).notNull(),
-  isCompleted: boolean('is_completed').default(false).notNull(),
-  verifiedBy: uuid('verified_by').references(() => users.id, { onDelete: 'set null' }),
+  departmentId: uuid('department_id').references(() => nonAcademicDepartments.id, { onDelete: 'cascade' }).notNull(),
+  reason: text('reason').notNull(),
+  status: text('status').default('pending').notNull(),
+  flaggedBy: uuid('flagged_by').references(() => users.id, { onDelete: 'set null' }),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 }, (table) => {
   return {
-    requestReqIdx: index('progress_request_req_idx').on(table.clearanceRequestId, table.requirementId),
+    defaulterRequestDeptIdx: index('defaulter_request_dept_idx').on(table.clearanceRequestId, table.departmentId),
   };
 });
 
 // ==========================================
-// 13. SYSTEM SETTINGS TABLE
+// 14. SYSTEM SETTINGS TABLE
 // ==========================================
 export const systemSettings = pgTable('system_settings', {
   id: uuid('id').defaultRandom().primaryKey(),
@@ -268,7 +257,7 @@ export const systemSettings = pgTable('system_settings', {
 });
 
 // ==========================================
-// 14. NOTIFICATION LOGS TABLE
+// 15. NOTIFICATION LOGS TABLE
 // ==========================================
 export const notificationLogs = pgTable('notification_logs', {
   id: uuid('id').defaultRandom().primaryKey(),
@@ -279,7 +268,7 @@ export const notificationLogs = pgTable('notification_logs', {
 });
 
 // ==========================================
-// 15. DEPARTMENT OFFICER SCHEDULES TABLE
+// 16. DEPARTMENT OFFICER SCHEDULES TABLE
 // ==========================================
 export const departmentSchedules = pgTable('department_schedules', {
   id: uuid('id').defaultRandom().primaryKey(),
@@ -291,7 +280,7 @@ export const departmentSchedules = pgTable('department_schedules', {
 });
 
 // ==========================================
-// 16. CLEARANCE METRICS CACHE TABLE
+// 17. CLEARANCE METRICS CACHE TABLE
 // ==========================================
 export const clearanceMetricsCache = pgTable('clearance_metrics_cache', {
   id: uuid('id').defaultRandom().primaryKey(),
@@ -301,7 +290,7 @@ export const clearanceMetricsCache = pgTable('clearance_metrics_cache', {
 });
 
 // ==========================================
-// 17. AUDIT LOGS TABLE
+// 18. AUDIT LOGS TABLE
 // ==========================================
 export const auditLogs = pgTable('audit_logs', {
   id: uuid('id').defaultRandom().primaryKey(),
@@ -356,8 +345,8 @@ export const nonAcademicDepartmentsRelations = relations(nonAcademicDepartments,
   departmentApprovals: many(departmentApprovals),
   documentUploads: many(documentUploads),
   supportTickets: many(supportTickets),
-  departmentRequirements: many(departmentRequirements),
   departmentSchedules: many(departmentSchedules),
+  defaulters: many(defaulters),
 }));
 
 export const usersRelations = relations(users, ({ one, many }) => ({
@@ -384,7 +373,7 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   supportTickets: many(supportTickets),
   ticketMessages: many(ticketMessages),
   notifications: many(notifications),
-  requirementProgressVerified: many(requirementProgress),
+  defaultersFlagged: many(defaulters, { relationName: 'defaulterFlaggedBy' }),
   systemSettingsUpdated: many(systemSettings),
   notificationLogs: many(notificationLogs),
   auditLogs: many(auditLogs),
@@ -399,7 +388,7 @@ export const clearanceRequestsRelations = relations(clearanceRequests, ({ one, m
   documentUploads: many(documentUploads),
   certificate: one(certificates),
   supportTickets: many(supportTickets),
-  requirementProgress: many(requirementProgress),
+  defaulters: many(defaulters),
 }));
 
 export const departmentApprovalsRelations = relations(departmentApprovals, ({ one }) => ({
@@ -485,26 +474,19 @@ export const notificationsRelations = relations(notifications, ({ one }) => ({
   }),
 }));
 
-export const departmentRequirementsRelations = relations(departmentRequirements, ({ one, many }) => ({
-  department: one(nonAcademicDepartments, {
-    fields: [departmentRequirements.departmentId],
-    references: [nonAcademicDepartments.id],
-  }),
-  requirementProgress: many(requirementProgress),
-}));
-
-export const requirementProgressRelations = relations(requirementProgress, ({ one }) => ({
+export const defaultersRelations = relations(defaulters, ({ one }) => ({
   clearanceRequest: one(clearanceRequests, {
-    fields: [requirementProgress.clearanceRequestId],
+    fields: [defaulters.clearanceRequestId],
     references: [clearanceRequests.id],
   }),
-  requirement: one(departmentRequirements, {
-    fields: [requirementProgress.requirementId],
-    references: [departmentRequirements.id],
+  department: one(nonAcademicDepartments, {
+    fields: [defaulters.departmentId],
+    references: [nonAcademicDepartments.id],
   }),
-  verifier: one(users, {
-    fields: [requirementProgress.verifiedBy],
+  flaggedByUser: one(users, {
+    fields: [defaulters.flaggedBy],
     references: [users.id],
+    relationName: 'defaulterFlaggedBy',
   }),
 }));
 
@@ -576,11 +558,8 @@ export type InsertTicketMessage = typeof ticketMessages.$inferInsert;
 export type SelectNotification = typeof notifications.$inferSelect;
 export type InsertNotification = typeof notifications.$inferInsert;
 
-export type SelectDepartmentRequirement = typeof departmentRequirements.$inferSelect;
-export type InsertDepartmentRequirement = typeof departmentRequirements.$inferInsert;
-
-export type SelectRequirementProgress = typeof requirementProgress.$inferSelect;
-export type InsertRequirementProgress = typeof requirementProgress.$inferInsert;
+export type SelectDefaulter = typeof defaulters.$inferSelect;
+export type InsertDefaulter = typeof defaulters.$inferInsert;
 
 export type SelectSystemSetting = typeof systemSettings.$inferSelect;
 export type InsertSystemSetting = typeof systemSettings.$inferInsert;
