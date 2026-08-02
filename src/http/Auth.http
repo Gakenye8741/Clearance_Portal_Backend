@@ -1,0 +1,104 @@
+@baseUrl = http://localhost:5000/api/users
+@scienceId = 10f77446-afe4-42b5-8242-3b2ead5103b9
+@departmentId = 31e0d686-f77a-44c3-bb91-7efd7225486b
+@userId = replace-with-actual-user-uuid
+
+@scienceId = f202bd75-b91f-45a4-a755-37f27f912ca3
+@departmentId = 78e358e9-fa4d-4e9b-a556-070dcac0a6ab
+
+### 1. Register User (Role Optional - Defaults to "student")
+POST {{baseUrl}}/register
+Content-Type: application/json
+
+{
+  "name": "John Doe",
+  "email": "test@example3.com",
+  "password": "SecurePassword123!",
+  "phoneNumber": "+254712345678",
+  "yearOfStudy": 4,
+  "schoolId": "{{scienceId}}",
+  "schoolDepartmentId": "{{departmentId}}",
+  "acceptTerms": true
+}
+
+### 2. Register Admin
+POST {{baseUrl}}/register
+Content-Type: application/json
+
+{
+  "name": "Admin User1",
+  "email": "admin1@example.com",
+  "password": "SecurePassword123!",
+  "role": "school_administrator",
+  "regNumber": "LAI/2022/999999",
+  "phoneNumber": "+254700000000",
+  "acceptTerms": true
+}
+
+### 3. Login User (using Email or Reg Number)
+POST {{baseUrl}}/login
+Content-Type: application/json
+
+{
+  "identifier": "test@example3.com",
+  "password": "SecurePassword123!"
+}
+
+### 4. Get User By ID
+GET {{baseUrl}}/{{userId}}
+Content-Type: application/json
+
+### 5. Update Password
+PUT {{baseUrl}}/password
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "newPassword": "NewSecurePassword123!"
+}
+
+### 6. Update Verification Status
+PUT {{baseUrl}}/verification
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "status": true
+}
+
+### 7. Generate Confirmation Code
+POST {{baseUrl}}/confirmation-code/generate
+Content-Type: application/json
+
+{
+  "email": "test@example.com"
+}
+
+### 8. Verify Confirmation Code
+POST {{baseUrl}}/confirmation-code/verify
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "code": "123456"
+}
+
+### 9. Update User Profile
+PUT {{baseUrl}}/profile/{{userId}}
+Content-Type: application/json
+
+{
+  "phoneNumber": "+254798765432",
+  "schoolId": "{{scienceId}}",
+  "schoolDepartmentId": "{{departmentId}}",
+  "yearOfStudy": 5
+}
+@changeRoleId = 3427c046-163e-4bbf-91da-7e4e1d9f30fc
+
+### 10. Update User Role (Admin)
+PATCH {{baseUrl}}/role/{{changeRoleId}}
+Content-Type: application/json
+
+{
+  "role": "hod"
+}

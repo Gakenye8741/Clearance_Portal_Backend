@@ -1,0 +1,137 @@
+@baseUrl = http://localhost:5000/api/non-academic-departments
+# ab144880-12a0-46e9-a4b0-fb429c0c901c
+
+@departmentId = ab144880-12a0-46e9-a4b0-fb429c0c901c
+@departmentCode = LIB
+@departmentType = service
+@hodId = 6e44d895-f287-413f-9985-ad370949d064
+
+### 1. Create Non-Academic Department
+### 1. Catering Department
+POST {{baseUrl}}
+Content-Type: application/json
+
+{
+  "name": "Catering Department",
+  "code": "CAD",
+  "type": "service",
+  "description": "University catering and food services",
+  "isActive": true
+}
+
+### 2. Maintenance and Estates Department
+POST {{baseUrl}}
+Content-Type: application/json
+
+{
+  "name": "Maintenance and Estates Department",
+  "code": "MED",
+  "type": "service",
+  "description": "Campus facilities repair, maintenance, and infrastructure upkeep",
+  "isActive": true
+}
+
+### 3. University Health Services
+POST {{baseUrl}}
+Content-Type: application/json
+
+{
+  "name": "University Health Services",
+  "code": "UHS",
+  "type": "service",
+  "description": "Student and staff medical clinic and healthcare center",
+  "isActive": true
+}
+
+### 4. Security Services Department
+POST {{baseUrl}}
+Content-Type: application/json
+
+{
+  "name": "Security Services Department",
+  "code": "SSD",
+  "type": "service",
+  "description": "Campus safety, gate security, and emergency response",
+  "isActive": true
+}
+
+### 5. ICT and Network Services
+POST {{baseUrl}}
+Content-Type: application/json
+
+{
+  "name": "ICT and Network Services",
+  "code": "INS",
+  "type": "service",
+  "description": "University internet connectivity, computer labs, and technical support",
+  "isActive": true
+}
+
+### 6. Finance and Accounts Department
+POST {{baseUrl}}
+Content-Type: application/json
+
+{
+  "name": "Finance and Accounts Department",
+  "code": "FAD",
+  "type": "administrative",
+  "description": "Fee collection, budgeting, and financial auditing",
+  "isActive": true
+}
+
+### 7. Human Resources Department
+POST {{baseUrl}}
+Content-Type: application/json
+
+{
+  "name": "Human Resources Department",
+  "code": "HRD",
+  "type": "administrative",
+  "description": "Staff recruitment, payroll, and personnel management",
+  "isActive": true
+}
+
+### 2. Get All Non-Academic Departments
+GET {{baseUrl}}
+Content-Type: application/json
+
+### 3. Get Non-Academic Department By ID
+GET {{baseUrl}}/{{departmentId}}
+Content-Type: application/json
+
+### 4. Get Non-Academic Department By Code
+GET {{baseUrl}}/code/{{departmentCode}}
+Content-Type: application/json
+
+### 5. Get Non-Academic Departments By Type
+GET {{baseUrl}}/type/{{departmentType}}
+Content-Type: application/json
+
+### 6. Update Non-Academic Department
+PUT {{baseUrl}}/{{departmentId}}
+Content-Type: application/json
+
+{
+  "name": "Main University Library Services",
+  "description": "Updated university library and digital resource center"
+}
+
+### 7. Assign HOD / Director to Non-Academic Department
+PATCH {{baseUrl}}/{{departmentId}}/hod
+Content-Type: application/json
+
+{
+  "hodId": "{{hodId}}"
+}
+
+### 8. Toggle Non-Academic Department Active Status
+PATCH {{baseUrl}}/{{departmentId}}/status
+Content-Type: application/json
+
+{
+  "isActive": false
+}
+
+### 9. Delete Non-Academic Department
+DELETE {{baseUrl}}/{{departmentId}}
+Content-Type: application/json
